@@ -76,7 +76,9 @@ fader chk upd s d c = fdr s []
     where
         fdr l r = if chk l then lineUp r else fdr (upd l d) (cell (c l) ++ r)
 
+fadeIn :: (Double -> [Char]) -> [Char]
 fadeIn = fader (< 0) (-) 1 interval
+fadeOut :: (Double -> [Char]) -> [Char]
 fadeOut = fader (> 1) (+) 0 interval
 
 interval :: Double
