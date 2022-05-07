@@ -7,7 +7,7 @@ writeTo path html = do
     writeFile path html
 
 output :: String -> IO ()
-output  = writeTo "test.html"
+output  = writeTo "output/svg.html"
 
 linkAttrs :: Foldable t => t ([Char], [Char]) -> [Char]
 linkAttrs = link ""

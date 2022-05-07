@@ -76,19 +76,17 @@ fader chk upd s d c = fdr s []
     where
         fdr l r = if chk l then lineUp r else fdr (upd l d) (cell (c l) ++ r)
 
-fadeIn :: Double -> (Double -> [Char]) -> [Char]
-fadeIn = fader (< 0) (-) 1
-fadeOut :: Double -> (Double -> [Char]) -> [Char]
-fadeOut = fader (> 1) (+) 0
+fadeIn = fader (< 0) (-) 1 interval
+fadeOut = fader (> 1) (+) 0 interval
 
 interval :: Double
 interval = 0.05
 
 row1 :: [Char]
-row1 = toStr [fadeIn interval fadeGreen, fadeOut interval fadeOrange, fadeIn interval fadeIndigo, fadeOut interval fadeYellow, fadeIn interval fadeViolet, fadeOut interval fadeRed, fadeIn interval fadeRed]
+row1 = toStr [fadeIn  fadeGreen, fadeOut  fadeOrange, fadeIn  fadeIndigo, fadeOut  fadeYellow, fadeIn  fadeViolet, fadeOut  fadeRed, fadeIn  fadeRed]
 
 row2 :: [Char]
-row2 = toStr [fadeOut interval fadeIndigo, fadeIn interval fadeYellow, fadeOut interval fadeViolet, fadeIn interval fadeBlue, fadeOut interval fadeGreen, fadeIn interval fadeOrange, fadeOut interval fadeBlue]
+row2 = toStr [fadeOut  fadeIndigo, fadeIn  fadeYellow, fadeOut  fadeViolet, fadeIn  fadeBlue, fadeOut  fadeGreen, fadeIn  fadeOrange, fadeOut  fadeBlue]
 
 
 -- >>> writeTo "test.html" (row1 ++ row2)
