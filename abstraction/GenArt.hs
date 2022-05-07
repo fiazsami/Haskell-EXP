@@ -89,5 +89,5 @@ row2 :: [Char]
 row2 = toStr [fadeOut  fadeIndigo, fadeIn  fadeYellow, fadeOut  fadeViolet, fadeIn  fadeBlue, fadeOut  fadeGreen, fadeIn  fadeOrange, fadeOut  fadeBlue]
 
 
--- >>> writeTo "test.html" (row1 ++ row2)
+-- >>> writeTo "output/test.html" (row1 ++ row2)
 
