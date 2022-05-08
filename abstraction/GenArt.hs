@@ -56,20 +56,20 @@ cell color = element "div" (baseRect color)
 fade :: Show a => [Char] -> a -> [Char]
 fade color op = toStr [bgColor color, opacity (show op)]
 
-fadeRed :: Double -> String
-fadeRed = fade "red"
-fadeOrange :: Double -> String
-fadeOrange = fade "orange"
-fadeYellow :: Double -> String
-fadeYellow = fade "yellow"
-fadeGreen :: Double -> String
-fadeGreen = fade "green"
-fadeBlue :: Double -> String
-fadeBlue = fade "blue"
-fadeIndigo :: Double -> String
-fadeIndigo = fade "indigo"
-fadeViolet :: Double -> String
-fadeViolet = fade "violet"
+red :: Double -> String
+red = fade "red"
+orange :: Double -> String
+orange = fade "orange"
+yellow :: Double -> String
+yellow = fade "yellow"
+green :: Double -> String
+green = fade "green"
+blue :: Double -> String
+blue = fade "blue"
+indigo :: Double -> String
+indigo = fade "indigo"
+violet :: Double -> String
+violet = fade "violet"
 
 fader :: (t -> Bool) -> (t -> p -> t) -> t -> p -> (t -> [Char]) -> [Char]
 fader chk upd s d c = fdr s []
@@ -85,10 +85,10 @@ interval :: Double
 interval = 0.05
 
 row1 :: [Char]
-row1 = toStr [fadeIn  fadeGreen, fadeOut  fadeOrange, fadeIn  fadeIndigo, fadeOut  fadeYellow, fadeIn  fadeViolet, fadeOut  fadeRed, fadeIn  fadeRed]
+row1 = toStr [fadeIn green, fadeOut orange, fadeIn indigo, fadeOut yellow, fadeIn violet, fadeOut red, fadeIn red]
 
 row2 :: [Char]
-row2 = toStr [fadeOut  fadeIndigo, fadeIn  fadeYellow, fadeOut  fadeViolet, fadeIn  fadeBlue, fadeOut  fadeGreen, fadeIn  fadeOrange, fadeOut  fadeBlue]
+row2 = toStr [fadeOut indigo, fadeIn yellow, fadeOut violet, fadeIn blue, fadeOut green, fadeIn orange, fadeOut blue]
 
 
 -- >>> writeTo "output/test.html" (row1 ++ row2)
