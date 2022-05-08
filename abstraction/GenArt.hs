@@ -3,6 +3,7 @@ import System.IO ()
 writeTo :: FilePath -> String -> IO ()
 writeTo path html = do
     writeFile path html
+     
 toStr :: [[Char]] -> [Char]
 toStr list = link list ""
     where
@@ -45,13 +46,13 @@ rect w h = [width w, height h]
 square :: [Char] -> [[Char]]
 square d = rect d d
 
-coloredRect :: [Char] -> [Char] -> [Char] -> [[Char]]
-coloredRect w h c = [width w, height h, c]
+baseRect :: [Char] -> [Char] -> [Char] -> [[Char]]
+baseRect w h c = [width w, height h, c]
 
-baseRect :: [Char] -> [[Char]]
-baseRect = coloredRect "184px" "26px"
+coloredRect :: [Char] -> [[Char]]
+coloredRect = baseRect "184px" "26px"
 cell :: [Char] -> [Char]
-cell color = element "div" (baseRect color)
+cell color = element "div" (coloredRect color)
 
 fade :: Show a => [Char] -> a -> [Char]
 fade color op = toStr [bgColor color, opacity (show op)]
