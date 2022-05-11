@@ -18,11 +18,12 @@ extractTag = pTag ""
 
 parseTag = toks [] []
     where
-        toks cur res [] = reverse (reverse cur:res)
+        toks cur res [] = reverse (addItem cur res)
         toks cur res (x:xs) =
             if x == ' '
-            then toks [] (reverse cur:res) xs
+            then toks [] (addItem cur res) xs
             else toks (x:cur) res xs
+        addItem c r = reverse c:r
 
 parseElement = pIter [] []
     where
