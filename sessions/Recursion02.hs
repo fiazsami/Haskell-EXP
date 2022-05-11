@@ -10,6 +10,7 @@ tailFactorial :: Num t => t -> [t] -> t
 tailFactorial answer [] = answer
 tailFactorial answer (x:xs) = tailFactorial (answer * x) xs
 
+
 countOcc :: Num t => Char -> [Char] -> t -> t
 countOcc _ "" count = count
 countOcc char (x:xs) count = 
