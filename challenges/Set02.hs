@@ -62,10 +62,10 @@ import Data.Char (isNumber)
 -- NAME   : splice
 -- PARAM 1: an integer
 -- PARAM 2: an integer
--- PARAM 3: a string
--- RESULT : a string that does not have characters within PARAM 1 (inclusive) and PARAM 2 (non-inclusive)
+-- PARAM 3: a list
+-- RESULT : a list that does not have characters within PARAM 1 (inclusive) and PARAM 2 (non-inclusive)
 -- >>> splice 3 6 "abcdefghijkl"
 -- "abcghijkl"
 
--- >>> splice 3 6 "this is a sample string"
--- "this a sample string"
+-- >>> splice 4 8 [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+-- [0,1,2,3,8,9,10,11,12]
