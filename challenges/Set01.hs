@@ -14,8 +14,11 @@
 -- PARAM 1: a character
 -- PARAM 2: a string
 -- RESULT : an integer of the sum of all characters that are NOT param 1
--- >>> countNon '.' "Recursion... such an interesting concept!!"
--- 39
+-- >>> countNon 'b' "abcdeabcde"
+-- 8
+
+-- >>> countNon 'a' "aaabbbccc"
+-- 6
 
 
 
