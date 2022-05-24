@@ -9,9 +9,6 @@
 myFilter :: Foldable t => (a -> Bool) -> t a -> [a]
 myFilter fn dataSet = foldr (\x acc -> if fn x then acc else x : acc) [] dataSet
 
-myFilter' :: (a -> Bool) -> [a] -> [a]
-myFilter' fn dataList = myFoldr (\x acc -> if fn x then acc else x : acc) [] dataList
-
 myFilter0 :: [Integer]
 myFilter0 = myFilter even [1..12]
 
@@ -30,3 +27,6 @@ myFilter3 f z (x:xs) = foldr
 myFoldr :: (t1 -> t2 -> t2) -> t2 -> [t1] -> t2
 myFoldr f z [] = z
 myFoldr f z (x:xs) = f x (myFoldr f z xs)
+
+myFilter' :: (a -> Bool) -> [a] -> [a]
+myFilter' fn dataList = myFoldr (\x acc -> if fn x then acc else x : acc) [] dataList
