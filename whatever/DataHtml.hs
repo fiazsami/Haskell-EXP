@@ -91,3 +91,19 @@ bodyStyles = [color "red"]
 -- Constructing the element
 testElemStr :: String
 testElemStr = elementStr [html]
+
+-- >>> testElemStr
+-- "<html><head styles='width:300px; height:100px; ' >Hello World!</head><body styles='color:red; ' ><p>yo!</p>My name is Whatever!</body></html>"
+
+{----- Make the list of element a show instance -----}
+
+newtype HTML = HTML [Element]
+
+instance Show HTML where
+  show (HTML e) = show $ elementStr e
+
+testHTML :: HTML
+testHTML = HTML [html]
+
+-- >>> testHTML
+-- "<html><head styles='width:300px; height:100px; ' >Hello World!</head><body styles='color:red; ' ><p>yo!</p>My name is Whatever!</body></html>"
