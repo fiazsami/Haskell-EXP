@@ -1,15 +1,19 @@
 {----- Defining Data Types -----}
 
--- Style is composed of the style type & style params
-data Style = EmptyStyle | Style {styleType :: String, styleParam :: String}
+-- Element is composed of a tag, and a list of elements, or it is purely content as as string
+data Element = Element {elemTag :: Tag, childElement :: [Element]} | Content {content :: String}
   deriving (Show)
 
 -- Tag is composed of a tag with a list of styles
-data Tag = Tag {tag :: String, styles :: [Style]}
+data Tag = Tag {tag :: String, tagAttr :: [TagAttributes]}
   deriving (Show)
 
--- Element is composed of a tag, and a list of elements, or it is purely content as as string
-data Element = Element {elemTag :: Tag, childElement :: [Element]} | Content {content :: String}
+-- TagAttributes
+data TagAttributes = EmptyAttr | TagStyle {tagStyle :: [Style]}
+  deriving (Show)
+
+-- Style is composed of the style type & style params
+data Style = EmptyStyle | Style {styleType :: String, styleParam :: String}
   deriving (Show)
 
 {----- Defining Style examples -----}
@@ -37,23 +41,19 @@ color = Style "color"
 {----- Defining the function to construct the Element text from a list of element -----}
 
 elementStr :: [Element] -> String
--- If the element list is empty, then return empty string
 elementStr [] = ""
--- Pattern matching the first element of the element list
 elementStr (e : es) = case e of
-  -- If the element is a content element, then simply return the content text
   (Content c) -> c
-  -- If the element is a full element, then try to deconstruct the element
-  (Element (Tag t styles@(s : ss)) childElem) ->
-    -- Deconstructing like <openTag> ChildElem </closeTag>
-    openTag t styles ++ elementStr childElem ++ closeTag t
-      -- If there are multiple elements on parallel level, joint them together after the whole prior element is succesfully deconstructed
-      ++ elementStr es
-  -- Return empty string for any other cases, such as incomplete Tag declaration etc.
+  (Element (Tag t aa@(a : as)) childElem) -> openTag t (allAttr aa) ++ elementStr childElem ++ closeTag t ++ elementStr es
+    where
+      openTag t s = "<" ++ t ++ s ++ ">"
+      closeTag t = "</" ++ t ++ ">"
+
+      allAttr [] = ""
+      allAttr (a : as) = case a of
+        (TagStyle s) -> completeStyle $ stylesStr s ++ allAttr as
+        EmptyAttr -> allAttr as
   _ -> ""
-  where
-    openTag t s = "<" ++ t ++ completeStyle (stylesStr s) ++ ">"
-    closeTag t = "</" ++ t ++ ">"
 
 {- Simple example of making the html code
 
@@ -69,16 +69,16 @@ elementStr (e : es) = case e of
 
 -- the html element with tag "html", no styles, `htmlElem` wrapped inside
 html :: Element
-html = Element (Tag "html" [EmptyStyle]) htmlElem
+html = Element (Tag "html" [EmptyAttr]) htmlElem
 
 -- the head and body elements wrapped inside the html element
 htmlElem :: [Element]
 htmlElem =
   -- the head element: "head" tag, with `headStyles` as styles & "Hello World!" as content
-  [ Element (Tag "head" headStyles) [Content "Hello World!"],
+  [ Element (Tag "head" [TagStyle headStyles]) [Content "Hello World!"],
     -- the body element: "body" tag, with `bodyStyles` as styles
     -- 2 child elements wrapping inside, one <p>yo!</p> & one content " "My name is Whatever!"
-    Element (Tag "body" bodyStyles) [Element (Tag "p" [EmptyStyle]) [Content "yo!"], Content "My name is Whatever!"]
+    Element (Tag "body" [TagStyle bodyStyles]) [Element (Tag "p" [EmptyAttr]) [Content "yo!"], Content "My name is Whatever!"]
   ]
 
 -- The styles
@@ -91,6 +91,9 @@ bodyStyles = [color "red"]
 -- Constructing the element
 testElemStr :: String
 testElemStr = elementStr [html]
+
+-- >>> html
+-- Element {elemTag = Tag {tag = "html", tagAttr = [EmptyAttr]}, childElement = [Element {elemTag = Tag {tag = "head", tagAttr = [TagStyle {tagStyle = [Style {styleType = "width", styleParam = "300px"},Style {styleType = "height", styleParam = "100px"}]}]}, childElement = [Content {content = "Hello World!"}]},Element {elemTag = Tag {tag = "body", tagAttr = [TagStyle {tagStyle = [Style {styleType = "color", styleParam = "red"}]}]}, childElement = [Element {elemTag = Tag {tag = "p", tagAttr = [EmptyAttr]}, childElement = [Content {content = "yo!"}]},Content {content = "My name is Whatever!"}]}]}
 
 -- >>> testElemStr
 -- "<html><head styles='width:300px; height:100px; ' >Hello World!</head><body styles='color:red; ' ><p>yo!</p>My name is Whatever!</body></html>"
@@ -112,7 +115,7 @@ testHTML = HTML html
 
 -- Getting the list of element from HTML
 -- >>> unHTML testHTML
--- [Element {elemTag = Tag {tag = "html", styles = [EmptyStyle]}, childElement = [Element {elemTag = Tag {tag = "head", styles = [Style {styleType = "width", styleParam = "300px"},Style {styleType = "height", styleParam = "100px"}]}, childElement = [Content {content = "Hello World!"}]},Element {elemTag = Tag {tag = "body", styles = [Style {styleType = "color", styleParam = "red"}]}, childElement = [Element {elemTag = Tag {tag = "p", styles = [EmptyStyle]}, childElement = [Content {content = "yo!"}]},Content {content = "My name is Whatever!"}]}]}]
+-- Element {elemTag = Tag {tag = "html", tagAttr = [EmptyAttr]}, childElement = [Element {elemTag = Tag {tag = "head", tagAttr = [TagStyle {tagStyle = [Style {styleType = "width", styleParam = "300px"},Style {styleType = "height", styleParam = "100px"}]}]}, childElement = [Content {content = "Hello World!"}]},Element {elemTag = Tag {tag = "body", tagAttr = [TagStyle {tagStyle = [Style {styleType = "color", styleParam = "red"}]}]}, childElement = [Element {elemTag = Tag {tag = "p", tagAttr = [EmptyAttr]}, childElement = [Content {content = "yo!"}]},Content {content = "My name is Whatever!"}]}]}
 
 getNthChild :: Integer -> [Element] -> Element
 getNthChild _ [] = error "Invalid length"
@@ -120,22 +123,25 @@ getNthChild n (e : es)
   | n == 1 = e
   | otherwise = getNthChild (n -1) es
 
--- Get rid of the list structure
--- >>> getNthChild 1 $ unHTML testHTML
--- Element {elemTag = Tag {tag = "html", styles = [EmptyStyle]}, childElement = [Element {elemTag = Tag {tag = "head", styles = [Style {styleType = "width", styleParam = "300px"},Style {styleType = "height", styleParam = "100px"}]}, childElement = [Content {content = "Hello World!"}]},Element {elemTag = Tag {tag = "body", styles = [Style {styleType = "color", styleParam = "red"}]}, childElement = [Element {elemTag = Tag {tag = "p", styles = [EmptyStyle]}, childElement = [Content {content = "yo!"}]},Content {content = "My name is Whatever!"}]}]}
-
 -- Get the child element of the html element
--- >>> childElement $ getNthChild 1 $ unHTML testHTML
--- [Element {elemTag = Tag {tag = "head", styles = [Style {styleType = "width", styleParam = "300px"},Style {styleType = "height", styleParam = "100px"}]}, childElement = [Content {content = "Hello World!"}]},Element {elemTag = Tag {tag = "body", styles = [Style {styleType = "color", styleParam = "red"}]}, childElement = [Element {elemTag = Tag {tag = "p", styles = [EmptyStyle]}, childElement = [Content {content = "yo!"}]},Content {content = "My name is Whatever!"}]}]
+-- >>> childElement $ unHTML testHTML
+-- [Element {elemTag = Tag {tag = "head", tagAttr = [TagStyle {tagStyle = [Style {styleType = "width", styleParam = "300px"},Style {styleType = "height", styleParam = "100px"}]}]}, childElement = [Content {content = "Hello World!"}]},Element {elemTag = Tag {tag = "body", tagAttr = [TagStyle {tagStyle = [Style {styleType = "color", styleParam = "red"}]}]}, childElement = [Element {elemTag = Tag {tag = "p", tagAttr = [EmptyAttr]}, childElement = [Content {content = "yo!"}]},Content {content = "My name is Whatever!"}]}]
 
 -- Get the body (2nd) element
--- >>> getNthChild 2 $ childElement $ getNthChild 1 $ unHTML testHTML
--- Element {elemTag = Tag {tag = "body", styles = [Style {styleType = "color", styleParam = "red"}]}, childElement = [Element {elemTag = Tag {tag = "p", styles = [EmptyStyle]}, childElement = [Content {content = "yo!"}]},Content {content = "My name is Whatever!"}]}
+-- >>> getNthChild 2 $ childElement $ unHTML testHTML
+-- Element {elemTag = Tag {tag = "body", tagAttr = [TagStyle {tagStyle = [Style {styleType = "color", styleParam = "red"}]}]}, childElement = [Element {elemTag = Tag {tag = "p", tagAttr = [EmptyAttr]}, childElement = [Content {content = "yo!"}]},Content {content = "My name is Whatever!"}]}
+
+getStyleFromAttr :: [TagAttributes] -> [Style]
+getStyleFromAttr [] = [EmptyStyle]
+getStyleFromAttr (a : as) = case a of
+  (TagStyle s) -> s
+  _ -> getStyleFromAttr as
 
 getStyles :: Element -> [Style]
-getStyles = styles . elemTag
+getStyles = getStyleFromAttr . tagAttr . elemTag
 
--- >>> getStyles $ getNthChild 2 $ childElement $ getNthChild 1 $ unHTML testHTML
+-- Get the style from body
+-- >>> getStyles $ getNthChild 2 $ childElement $ unHTML testHTML
 -- [Style {styleType = "color", styleParam = "red"}]
 
 getNthStyle :: Integer -> [Style] -> Style
@@ -144,13 +150,13 @@ getNthStyle n (s : ss)
   | n == 1 = s
   | otherwise = getNthStyle (n -1) ss
 
--- >>> getNthStyle 1 $ getStyles $ getNthChild 2 $ childElement $ getNthChild 1 $ unHTML testHTML
+-- >>> getNthStyle 1 $ getStyles $ getNthChild 2 $ childElement $ unHTML testHTML
 -- Style {styleType = "color", styleParam = "red"}
 
 getStyleParam :: Style -> String
 getStyleParam = styleParam
 
--- >>> getStyleParam $ getNthStyle 1 $ getStyles $ getNthChild 2 $ childElement $ getNthChild 1 $ unHTML testHTML
+-- >>> getStyleParam $ getNthStyle 1 $ getStyles $ getNthChild 2 $ childElement $ unHTML testHTML
 -- "red"
 
 -- GOT IT!!!!
