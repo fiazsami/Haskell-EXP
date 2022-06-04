@@ -108,14 +108,11 @@ testHTML = HTML [html]
 -- >>> testHTML
 -- "<html><head styles='width:300px; height:100px; ' >Hello World!</head><body styles='color:red; ' ><p>yo!</p>My name is Whatever!</body></html>"
 
-{----- Now we can get the items back from the big element -----}
+{----- Now we can get the items back from the big element - Example here: try to get the "red" from body -----}
 
-getHTMLElem :: HTML -> [Element]
-getHTMLElem (HTML []) = error "No child exists"
-getHTMLElem (HTML [e]) = childElement e
-
--- >>> getHTMLElem testHTML
--- [Element {elemTag = Tag {tag = "head", styles = [Style {styleType = "width", stylePram = "300px"},Style {styleType = "height", stylePram = "100px"}]}, childElement = [Content {content = "Hello World!"}]},Element {elemTag = Tag {tag = "body", styles = [Style {styleType = "color", stylePram = "red"}]}, childElement = [Element {elemTag = Tag {tag = "p", styles = [EmptyStyle]}, childElement = [Content {content = "yo!"}]},Content {content = "My name is Whatever!"}]}]
+-- Getting the list of element from HTML
+-- >>> unHTML testHTML
+-- [Element {elemTag = Tag {tag = "html", styles = [EmptyStyle]}, childElement = [Element {elemTag = Tag {tag = "head", styles = [Style {styleType = "width", styleParam = "300px"},Style {styleType = "height", styleParam = "100px"}]}, childElement = [Content {content = "Hello World!"}]},Element {elemTag = Tag {tag = "body", styles = [Style {styleType = "color", styleParam = "red"}]}, childElement = [Element {elemTag = Tag {tag = "p", styles = [EmptyStyle]}, childElement = [Content {content = "yo!"}]},Content {content = "My name is Whatever!"}]}]}]
 
 getNthChild :: Integer -> [Element] -> Element
 getNthChild _ [] = error "Invalid length"
@@ -123,14 +120,23 @@ getNthChild n (e : es)
   | n == 1 = e
   | otherwise = getNthChild (n -1) es
 
--- >>> getNthChild 2 $ getHTMLElem testHTML
--- Element {elemTag = Tag {tag = "body", styles = [Style {styleType = "color", stylePram = "red"}]}, childElement = [Element {elemTag = Tag {tag = "p", styles = [EmptyStyle]}, childElement = [Content {content = "yo!"}]},Content {content = "My name is Whatever!"}]}
+-- Get rid of the list structure
+-- >>> getNthChild 1 $ unHTML testHTML
+-- Element {elemTag = Tag {tag = "html", styles = [EmptyStyle]}, childElement = [Element {elemTag = Tag {tag = "head", styles = [Style {styleType = "width", styleParam = "300px"},Style {styleType = "height", styleParam = "100px"}]}, childElement = [Content {content = "Hello World!"}]},Element {elemTag = Tag {tag = "body", styles = [Style {styleType = "color", styleParam = "red"}]}, childElement = [Element {elemTag = Tag {tag = "p", styles = [EmptyStyle]}, childElement = [Content {content = "yo!"}]},Content {content = "My name is Whatever!"}]}]}
+
+-- Get the child element of the html element
+-- >>> childElement $ getNthChild 1 $ unHTML testHTML
+-- [Element {elemTag = Tag {tag = "head", styles = [Style {styleType = "width", styleParam = "300px"},Style {styleType = "height", styleParam = "100px"}]}, childElement = [Content {content = "Hello World!"}]},Element {elemTag = Tag {tag = "body", styles = [Style {styleType = "color", styleParam = "red"}]}, childElement = [Element {elemTag = Tag {tag = "p", styles = [EmptyStyle]}, childElement = [Content {content = "yo!"}]},Content {content = "My name is Whatever!"}]}]
+
+-- Get the body (2nd) element
+-- >>> getNthChild 2 $ childElement $ getNthChild 1 $ unHTML testHTML
+-- Element {elemTag = Tag {tag = "body", styles = [Style {styleType = "color", styleParam = "red"}]}, childElement = [Element {elemTag = Tag {tag = "p", styles = [EmptyStyle]}, childElement = [Content {content = "yo!"}]},Content {content = "My name is Whatever!"}]}
 
 getStyles :: Element -> [Style]
 getStyles = styles . elemTag
 
--- >>> getStyles $ getNthChild 2 $ getHTMLElem testHTML
--- [Style {styleType = "color", stylePram = "red"}]
+-- >>> getStyles $ getNthChild 2 $ childElement $ getNthChild 1 $ unHTML testHTML
+-- [Style {styleType = "color", styleParam = "red"}]
 
 getNthStyle :: Integer -> [Style] -> Style
 getNthStyle _ [] = error "Invalid length"
@@ -138,13 +144,13 @@ getNthStyle n (s : ss)
   | n == 1 = s
   | otherwise = getNthStyle (n -1) ss
 
--- >>> getNthStyle 1 $ getStyles $ getNthChild 2 $ getHTMLElem testHTML
+-- >>> getNthStyle 1 $ getStyles $ getNthChild 2 $ childElement $ getNthChild 1 $ unHTML testHTML
 -- Style {styleType = "color", styleParam = "red"}
 
 getStyleParam :: Style -> String
 getStyleParam = styleParam
 
--- >>> getStyleParam $ getNthStyle 1 $ getStyles $ getNthChild 2 $ getHTMLElem testHTML
+-- >>> getStyleParam $ getNthStyle 1 $ getStyles $ getNthChild 2 $ childElement $ getNthChild 1 $ unHTML testHTML
 -- "red"
 
 -- GOT IT!!!!
