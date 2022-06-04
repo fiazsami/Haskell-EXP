@@ -1,5 +1,3 @@
-import Data.Sequence (Seq (Empty))
-
 {----- Defining Data Types -----}
 
 -- Style is composed of the style type & style params
