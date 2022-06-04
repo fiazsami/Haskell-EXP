@@ -97,13 +97,13 @@ testElemStr = elementStr [html]
 
 {----- Make the list of element a show instance -----}
 
-newtype HTML = HTML {unHTML :: [Element]}
+newtype HTML = HTML {unHTML :: Element}
 
 instance Show HTML where
-  show (HTML e) = show $ elementStr e
+  show (HTML e) = show $ elementStr [e]
 
 testHTML :: HTML
-testHTML = HTML [html]
+testHTML = HTML html
 
 -- >>> testHTML
 -- "<html><head styles='width:300px; height:100px; ' >Hello World!</head><body styles='color:red; ' ><p>yo!</p>My name is Whatever!</body></html>"
