@@ -1,8 +1,13 @@
+import Data.ByteString (foldl')
+import GHC.Base (getTag)
+
 {----- Defining Data Types -----}
 
 -- Element is composed of a tag, and a list of elements, or it is purely content as as string
 data Element = Element {elemTag :: Tag, childElement :: [Element]} | Content {content :: String}
-  deriving (Show)
+
+instance Show Element where
+  show e = show $ elementStr [e]
 
 -- Tag is composed of a tag with a list of styles
 data Tag = Tag {tag :: String, tagAttr :: [TagAttributes]}
@@ -41,19 +46,23 @@ color = Style "color"
 {----- Defining the function to construct the Element text from a list of element -----}
 
 elementStr :: [Element] -> String
-elementStr [] = ""
-elementStr (e : es) = case e of
-  (Content c) -> c
-  (Element (Tag t aa@(a : as)) childElem) -> openTag t (allAttr aa) ++ elementStr childElem ++ closeTag t ++ elementStr es
+elementStr [] = "" -- Return empty string for no element inputs
+elementStr (e : es) = case e of -- Pattern match first element
+  (Content c) -> c -- if its content then return the content string
+  (Element (Tag t aa@(a : as)) childElem) ->
+    -- if the element is a full element with deconstruction of input
+    openTag t (allAttr aa) ++ elementStr childElem ++ closeTag t -- Construct the the basic element
+      ++ elementStr es -- for the same level elements, append them after the previous is closed
     where
       openTag t s = "<" ++ t ++ s ++ ">"
       closeTag t = "</" ++ t ++ ">"
 
+      -- construct the attribution text here
       allAttr [] = ""
-      allAttr (a : as) = case a of
-        (TagStyle s) -> completeStyle $ stylesStr s ++ allAttr as
-        EmptyAttr -> allAttr as
-  _ -> ""
+      allAttr (a : as) = case a of -- pattern match the first attributes of the attr list
+        (TagStyle s) -> completeStyle $ stylesStr s ++ allAttr as -- if it is a style attribute, construct like styles attribution then check the remaining attributes
+        EmptyAttr -> allAttr as -- neglect the empty attribute
+  _ -> "" -- return empty string for all other cases
 
 {- Simple example of making the html code
 
@@ -160,3 +169,41 @@ getStyleParam = styleParam
 -- "red"
 
 -- GOT IT!!!!
+
+{----- Query Function -----}
+
+getElement ::
+  Element -> -- 1st argument: The large Element to query
+  [Int] -> -- 2nd argument: Order of Penetration
+  Element
+getElement e [] = e
+getElement e ls = foldr (\x acc -> childElement acc !! x) e (reverse ls)
+
+-- >>> getElement html [1]
+-- >>> getElement html [1,1]
+-- "<body styles='color:red; ' ><p>yo!</p>My name is Whatever!</body>"
+-- "My name is Whatever!"
+
+getElemTag :: Element -> [Int] -> String
+getElemTag e ls = tag $ elemTag $ getElement e ls
+
+getData ::
+  Element -> -- 1st argument: The large Element to query
+  [Int] -> -- 2nd argument: Order of Penetration
+  (Int, [Int]) -> -- 3rd argument: (Position of target attribute, attribute specific lookup logic)
+  String
+getData e ls (a, t) = case (tagAttr (elemTag $ getElement e ls) !! a, t) of
+  (TagStyle ts, [0]) -> "styles"
+  (TagStyle ts, [x, y]) -> case ts !! x of
+    Style st sp -> checkStyle y st sp
+      where
+        checkStyle x st sp
+          | x == 0 = st
+          | x == 1 = sp
+          | otherwise = "Lookup Fail (style lookup error)"
+    _ -> "Lookup Fail (style lookup error)"
+  _ -> "Lookup Fail"
+
+-- e.g. want to obtain the "red"
+-- >>> getData html [1] (0,[0,1])
+-- "red"
