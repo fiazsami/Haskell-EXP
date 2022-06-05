@@ -27,9 +27,6 @@ close (AttrTag name _) = "</" ++ name ++ ">"
 block :: Tag -> [Char]
 block (AttrTag name attributes) = "<" ++ name ++ attrs attributes ++ " />"
 
--- element :: Element -> [Char]
--- element (Element tag content) = open tag ++ content ++ close tag
-
 doc :: Document -> [Char]
 doc (Element tag content) = open tag ++ content ++ close tag
 doc (Node tag documents) = open tag ++ foldr(\x acc -> doc x ++ acc) [] documents ++ close tag
