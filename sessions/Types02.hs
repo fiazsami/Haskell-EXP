@@ -8,8 +8,7 @@ type Content = String
 
 data Attribute = Attribute Key Value | None deriving (Show, Read)
 data Tag = Tag Name | AttrTag Name [Attribute] deriving (Show, Read)
-data Element = Element Tag Content deriving (Show, Read)
-data Document = Node [Document] | Leaf Element deriving (Show, Read)
+data Document = Document [Document] | Node Tag Document | Element Tag Content deriving (Show, Read)
 
 attrStr :: Attribute -> [Char]
 attrStr (Attribute key value) = " " ++ key ++ "='" ++ value ++ "'"
@@ -27,12 +26,13 @@ close (Tag name) = "</" ++ name ++ ">"
 block :: Tag -> [Char]
 block (AttrTag name attrs) = "<" ++ name ++ attrsStr attrs ++ " />"
 
-element :: Element -> [Char]
-element (Element tag content) = open tag ++ content ++ close tag
+-- element :: Element -> [Char]
+-- element (Element tag content) = open tag ++ content ++ close tag
 
-node :: Document -> [Char]
-node (Leaf el) = element el
-node (Node docs) = foldr(\x acc -> node x ++ acc) [] docs
+doc :: Document -> [Char]
+doc (Element tag content) = open tag ++ content ++ close tag
+doc (Node tag document) = open tag ++ doc document ++ close tag
+doc (Document documents) = foldr(\x acc -> doc x ++ acc) [] documents
 
--- >>> node (Node [(Leaf (Element (Tag "div") "hello world")), (Leaf (Element (Tag "div") "hello world"))])
--- "<div>hello world</div><div>hello world</div>"
+-- >>> doc (Node (Tag "div") (Document [(Element (Tag "div") "hello world"), (Element (Tag "div") "hello world")]))
+-- "<div><div>hello world</div><div>hello world</div></div>"
