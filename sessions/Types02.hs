@@ -1,25 +1,38 @@
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
-
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 
-data Tag = Open String | Close String deriving (Show, Read)
-data Element = Element Tag [Element] | Content String deriving (Show, Read)
+type Key = String
+type Value = String
+type Name = String
+type Content = String
 
+data Attribute = Attribute Key Value | None deriving (Show, Read)
+data Tag = Tag Name | AttrTag Name [Attribute] deriving (Show, Read)
+data Element = Element Tag Content deriving (Show, Read)
+data Document = Node [Document] | Leaf Element deriving (Show, Read)
 
-open'p = Open "p"
-close'p = Close "P"
+attrStr :: Attribute -> [Char]
+attrStr (Attribute key value) = " " ++ key ++ "='" ++ value ++ "'"
 
-html = Element (Open "p") [Content "hello"]
+attrsStr :: Foldable t => t Attribute -> [Char]
+attrsStr = foldr(\x acc -> attrStr x ++ acc) []
 
-openTag :: Tag -> [Char]
-openTag (Open t) = "<" ++ t ++ ">"
-closeTag :: Tag -> [Char]
-closeTag (Close t) = "</" ++ t ++ ">"
+open :: Tag -> [Char]
+open (Tag name) = "<" ++ name ++ ">"
+open (AttrTag name attrs) = "<" ++ name ++ attrsStr attrs ++ ">"
 
+close :: Tag -> [Char]
+close (Tag name) = "</" ++ name ++ ">"
 
+block :: Tag -> [Char]
+block (AttrTag name attrs) = "<" ++ name ++ attrsStr attrs ++ " />"
 
 element :: Element -> [Char]
-element (Element open@(Open tag) [Content content]) = openTag open ++ content ++ closeTag (Close tag)
+element (Element tag content) = open tag ++ content ++ close tag
 
--- >>> element html
--- "<p>hello</p>"
+node :: Document -> [Char]
+node (Leaf el) = element el
+node (Node docs) = foldr(\x acc -> node x ++ acc) [] docs
+
+-- >>> node (Node [(Leaf (Element (Tag "div") "hello world")), (Leaf (Element (Tag "div") "hello world"))])
+-- "<div>hello world</div><div>hello world</div>"
