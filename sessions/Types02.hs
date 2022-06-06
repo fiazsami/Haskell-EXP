@@ -9,7 +9,7 @@ dtdHTML = "<!DOCTYPE html>"
 
 data Attribute = Attribute Name Value | BoolAttr Name deriving (Show, Read)
 data Tag = Tag Name | AttrTag Name [Attribute] deriving (Show, Read)
-data Document = HTML Tag [Document] | Element Tag Content deriving (Show, Read)
+data Document = Group [Document] | HTML Tag [Document] | Element Tag Content deriving (Show, Read)
 
 
 wrap :: [a] -> [a] -> [a] -> [a]
@@ -48,7 +48,8 @@ block (AttrTag name attributes) = wrBlock name ++ attrs attributes
 
 doc :: Document -> [Char]
 doc (Element tag content) = open tag ++ content ++ close tag
-doc (HTML tag documents) = open tag ++ foldr(\x acc -> doc x ++ acc) [] documents ++ close tag
+doc (HTML tag documents) = open tag ++ doc (Group documents) ++ close tag
+doc (Group documents) = foldr(\x acc -> doc x ++ acc) [] documents
 
 
 
