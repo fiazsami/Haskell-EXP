@@ -1,42 +1,15 @@
-{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
-{-# HLINT ignore "Redundant bracket" #-}
-{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
+newtype RGBInt = RGBInt Int deriving (Show)
 
-data Atrribute = Something String String
+data Color = Color RGBInt RGBInt RGBInt deriving (Show)
 
-data Style = Style String String deriving (Show, Read)
-data Tag = OpenStyle String [Style] | Open String | Close String deriving (Show, Read) 
+toColor :: Int -> Int -> Int -> Color
+toColor r g b = Color (toRGBInt r) (toRGBInt g) (toRGBInt b)
 
-
-styles :: [Style]
-styles = [width "200px", height "400px", bgColor "red", Style "display" "inline-block"]
-
-target :: Tag
-target = OpenStyle "p" styles
+toRGBInt :: Int -> RGBInt
+toRGBInt i
+    | -1 < i && i < 256 = RGBInt i
+    | otherwise = error "out of bounds"
 
 
-styleAttr :: [Style] -> [Char]
-styleAttr [] = ""
-styleAttr styles = " styles='" ++ (foldr (\(Style k v) acc -> (k ++ ":" ++ v ++ ";") ++ acc) [] styles) ++ "'"
-
-openTag :: Tag -> [Char]
-openTag (OpenStyle tag styles) = "<" ++ tag ++ styleAttr styles ++ ">"
-
-closeTag :: Tag -> [Char]
-closeTag (Close tag) = "</" ++ tag ++ ">"
-
-element :: Tag -> [Char] -> [Char]
-element open@(OpenStyle tag styles) content = openTag open ++ content ++ closeTag (Close tag)
-
--- >>> element target "buying opportunity today!"
--- "<p styles='width:200px;height:400px;background-color:red;display:inline-block;'>buying opportunity today!</p>"
-
-width :: String -> Style
-width = Style "width"
-
-height :: String -> Style
-height = Style "height"
-
-bgColor :: String -> Style
-bgColor = Style "background-color"
-
+-- >>> toColor 0 1 256
+-- out of bounds
