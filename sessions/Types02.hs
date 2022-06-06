@@ -36,7 +36,7 @@ attrs = foldr(\x acc -> attr x ++ acc) []
 
 open :: Tag -> [Char]
 open (Tag name) = wrOpen name
-open (AttrTag name attributes) =  wrOpen name ++ attrs attributes 
+open (AttrTag name attributes) =  wrOpen $ name ++ attrs attributes 
 
 close :: Tag -> [Char]
 close (Tag name) = wrClose name
@@ -53,4 +53,4 @@ doc (HTML tag documents) = open tag ++ foldr(\x acc -> doc x ++ acc) [] document
 
 
 -- >>> doc (HTML (AttrTag "section" [Attribute "onclick" "clicked()", Attribute "style" "width:300px"]) [(Element (Tag "p") "hello world"), (Element (Tag "p") "hello world")])
--- "<section> onclick=\"clicked()\" style=\"width:300px\"<p>hello world</p><p>hello world</p></section>"
+-- "<section onclick=\"clicked()\" style=\"width:300px\"><p>hello world</p><p>hello world</p></section>"
