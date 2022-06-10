@@ -4,7 +4,7 @@ type Content = String
 
 data Attribute = Attr Name Value | BoolAttr Name deriving (Show, Read)
 data Tag = Tag Name | TagAttr Name [Attribute] deriving (Show, Read)
-data Document = Group [Document] | HTML Tag [Document] | Elem Tag Content | Singleton Tag deriving (Show, Read)
+data HTML = Group [HTML] | Elements Tag [HTML] | Element Tag Content | Single Tag deriving (Show, Read)
 
 attr :: Attribute -> [Char]
 attr (Attr name value) = " " ++ name ++ "='" ++ value ++ "'"
@@ -21,9 +21,10 @@ close :: Tag -> [Char]
 close (Tag name) = "</" ++ name ++ ">"
 close (TagAttr name _) = "</" ++ name ++ ">"
 
-doc :: Document -> [Char]
-doc (Singleton tag) = open tag
-doc (Elem tag content) = open tag ++ content ++ close tag
-doc (HTML tag documents) = open tag ++ doc (Group documents) ++ close tag
-doc (Group documents) = foldr(\x acc -> doc x ++ acc) [] documents
+html :: HTML -> [Char]
+html (Single tag) = open tag
+html (Element tag content) = open tag ++ content ++ close tag
+html (Elements tag elements) = open tag ++ html (Group elements) ++ close tag
+html (Group group) = foldr(\x acc -> html x ++ acc) [] group
 
+-- >>> html (Elements (TagAttr "html" [Attr "lang" "en"]) [(Group [(Elements (Tag "head") [(Single (TagAttr "meta" [Attr "charset" "UTF-8"])), (Single (TagAttr "meta" [Attr "http-equiv" "X-UA-Compatible"])), (Element (Tag "title") "Hello World")]), Element (Tag "body") ""])])
