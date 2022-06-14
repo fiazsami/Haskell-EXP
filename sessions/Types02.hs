@@ -25,9 +25,8 @@ html (Element tag content) = open tag ++ content ++ close tag
 html (Elements tag elements) = open tag ++ html (HTML elements) ++ close tag
 html (HTML elements) = foldr(\x acc -> html x ++ acc) [] elements
 
-
-input :: HTML 
-input =
+document :: [Char] -> HTML 
+document body =
     Elements (TagAttr "html" (Attr "lang" "en")) [
             HTML [
                 Elements (Tag "head") [
@@ -35,12 +34,12 @@ input =
                     Single (TagAttr "meta" (Attrs [Attr "http-equiv" "X-UA-Compatible"])), 
                     Element (Tag "title") "Hello World"
                 ], 
-                Element (Tag "body") ""
+                Element (Tag "body") body
         ]
     ]
 
 
--- >>> html input
--- "<html lang='en'><head><meta charset='UTF-8'><meta http-equiv='X-UA-Compatible'><title>Hello World</title></head><body></body></html>"
+-- >>> html $ document "hello world"
+-- "<html lang='en'><head><meta charset='UTF-8'><meta http-equiv='X-UA-Compatible'><title>Hello World</title></head><body>hello world</body></html>"
 
 
